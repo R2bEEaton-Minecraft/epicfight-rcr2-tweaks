@@ -5,6 +5,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.common.MinecraftForge;
 import net.rcr2tweaks.epicfighttweaks.compat.MermodCompat;
+import net.rcr2tweaks.epicfighttweaks.compat.VampirismCompat;
+import net.rcr2tweaks.epicfighttweaks.compat.WerewolvesCompat;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,6 +17,8 @@ public class EpicFightTweaksMod {
     public EpicFightTweaksMod() {
         IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
         MermodCompat.register(forgeEventBus);
+        VampirismCompat.register(forgeEventBus);
+        WerewolvesCompat.register(forgeEventBus);
         LOGGER.info("Epic Fight RCR2 Tweaks loaded.");
     }
 }
