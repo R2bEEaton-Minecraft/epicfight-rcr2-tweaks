@@ -14,18 +14,25 @@ import java.lang.reflect.Method;
 public class VampirismCompat {
     private static final Logger LOGGER = LogManager.getLogger("epicfighttweaks/vampirism");
     private static final String MOD_ID = "vampirism";
-    private static final ResourceLocation BAT_ACTION_ID = new ResourceLocation("vampirism", "bat");
+    private static final ResourceLocation BAT_ACTION_ID = ResourceLocation.tryParse("vampirism:bat");
 
-    // de.teamlapen.vampirism.entity.player.vampire.VampirePlayer
     private static Method vampireGet;
-    // de.teamlapen.vampirism.api.entity.player.vampire.IVampirePlayer.getActionHandler()
     private static Method getActionHandler;
-    // de.teamlapen.vampirism.api.entity.player.actions.IActionHandler.isActionActive(ResourceLocation)
     private static Method isActionActiveRL;
-    private static boolean available = false;
+    // null = not yet attempted; true = ready; false = failed
+    private static Boolean initialized = null;
 
     public static void register(IEventBus forgeEventBus) {
         if (!ModList.get().isLoaded(MOD_ID)) { LOGGER.debug("Vampirism not present"); return; }
+        // Subscribe now, defer Class.forName until first use to avoid triggering static
+        // initializers before Vampirism's registries are populated.
+        forgeEventBus.<BattleModeSustainableEvent>addListener(VampirismCompat::onBattleModeSustainable);
+        forgeEventBus.<RenderEpicFightPlayerEvent>addListener(VampirismCompat::onRenderEpicFightPlayer);
+        LOGGER.info("Vampirism bat-form compat registered (lazy init)");
+    }
+
+    private static boolean lazyInit() {
+        if (initialized != null) return initialized;
         try {
             Class<?> vampirePlayerClass = Class.forName("de.teamlapen.vampirism.entity.player.vampire.VampirePlayer");
             vampireGet = vampirePlayerClass.getMethod("get", Player.class);
@@ -36,21 +43,23 @@ public class VampirismCompat {
             Class<?> iActionHandlerClass = Class.forName("de.teamlapen.vampirism.api.entity.player.actions.IActionHandler");
             isActionActiveRL = iActionHandlerClass.getMethod("isActionActive", ResourceLocation.class);
 
-            available = true;
-            forgeEventBus.<BattleModeSustainableEvent>addListener(VampirismCompat::onBattleModeSustainable);
-            forgeEventBus.<RenderEpicFightPlayerEvent>addListener(VampirismCompat::onRenderEpicFightPlayer);
+            initialized = true;
             LOGGER.info("Vampirism bat-form compat active");
-        } catch (Exception e) { LOGGER.error("Vampirism compat failed: {}", e.getMessage()); }
+        } catch (Throwable e) {
+            initialized = false;
+            LOGGER.error("Vampirism compat init failed: {}", e.getMessage());
+        }
+        return initialized;
     }
 
     private static boolean isInBatForm(Player player) {
-        if (!available) return false;
+        if (!lazyInit()) return false;
         try {
             Object vampPlayer = vampireGet.invoke(null, player);
             if (vampPlayer == null) return false;
             Object handler = getActionHandler.invoke(vampPlayer);
             return Boolean.TRUE.equals(isActionActiveRL.invoke(handler, BAT_ACTION_ID));
-        } catch (Exception e) { return false; }
+        } catch (Throwable e) { return false; }
     }
 
     private static void onBattleModeSustainable(BattleModeSustainableEvent event) {

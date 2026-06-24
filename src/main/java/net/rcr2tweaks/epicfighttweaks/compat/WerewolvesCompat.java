@@ -14,16 +14,23 @@ public class WerewolvesCompat {
     private static final Logger LOGGER = LogManager.getLogger("epicfighttweaks/werewolves");
     private static final String MOD_ID = "werewolves";
 
-    // de.teamlapen.werewolves.entities.player.werewolf.WerewolfPlayer.get(Player)
     private static Method werewolfGet;
-    // de.teamlapen.werewolves.api.entities.werewolf.IWerewolfDataholder.getForm()
     private static Method getForm;
-    // de.teamlapen.werewolves.api.entities.werewolf.WerewolfForm.isTransformed()
     private static Method isTransformed;
-    private static boolean available = false;
+    // null = not yet attempted; true = ready; false = failed
+    private static Boolean initialized = null;
 
     public static void register(IEventBus forgeEventBus) {
         if (!ModList.get().isLoaded(MOD_ID)) { LOGGER.debug("Werewolves not present"); return; }
+        // Subscribe now, but defer Class.forName until first use — WerewolfPlayer's static
+        // initializer touches Vampirism registries that aren't populated yet during mod construction.
+        forgeEventBus.<BattleModeSustainableEvent>addListener(WerewolvesCompat::onBattleModeSustainable);
+        forgeEventBus.<RenderEpicFightPlayerEvent>addListener(WerewolvesCompat::onRenderEpicFightPlayer);
+        LOGGER.info("Werewolves form compat registered (lazy init)");
+    }
+
+    private static boolean lazyInit() {
+        if (initialized != null) return initialized;
         try {
             Class<?> werewolfPlayerClass = Class.forName("de.teamlapen.werewolves.entities.player.werewolf.WerewolfPlayer");
             werewolfGet = werewolfPlayerClass.getMethod("get", Player.class);
@@ -34,21 +41,23 @@ public class WerewolvesCompat {
             Class<?> dataholderClass = Class.forName("de.teamlapen.werewolves.api.entities.werewolf.IWerewolfDataholder");
             getForm = dataholderClass.getMethod("getForm");
 
-            available = true;
-            forgeEventBus.<BattleModeSustainableEvent>addListener(WerewolvesCompat::onBattleModeSustainable);
-            forgeEventBus.<RenderEpicFightPlayerEvent>addListener(WerewolvesCompat::onRenderEpicFightPlayer);
+            initialized = true;
             LOGGER.info("Werewolves form compat active");
-        } catch (Exception e) { LOGGER.error("Werewolves compat failed: {}", e.getMessage()); }
+        } catch (Throwable e) {
+            initialized = false;
+            LOGGER.error("Werewolves compat init failed: {}", e.getMessage());
+        }
+        return initialized;
     }
 
     private static boolean isInWerewolfForm(Player player) {
-        if (!available) return false;
+        if (!lazyInit()) return false;
         try {
             Object werewolfPlayer = werewolfGet.invoke(null, player);
             if (werewolfPlayer == null) return false;
             Object form = getForm.invoke(werewolfPlayer);
             return Boolean.TRUE.equals(isTransformed.invoke(form));
-        } catch (Exception e) { return false; }
+        } catch (Throwable e) { return false; }
     }
 
     private static void onBattleModeSustainable(BattleModeSustainableEvent event) {
