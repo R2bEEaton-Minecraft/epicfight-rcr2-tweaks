@@ -1,0 +1,78 @@
+plugins {
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+    id 'org.spongepowered.mixin' version '0.7.+'
+}
+
+version = mod_version
+group = 'net.rcr2tweaks'
+archivesBaseName = 'epicfight-rcr2-tweaks'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            arg '-mixin.config=mixins.epicfighttweaks.json'
+            jvmArg '-Dmixin.debug.export=true'
+            mods {
+                epicfighttweaks { source sourceSets.main }
+            }
+        }
+        server {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            arg '-mixin.config=mixins.epicfighttweaks.json'
+            mods {
+                epicfighttweaks { source sourceSets.main }
+            }
+        }
+    }
+}
+
+repositories {
+    maven { url = 'https://api.modrinth.com/maven' }
+    flatDir { dirs '../epicfight/build/libs' }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // Option A (local dev): build epicfight first, then uncomment:
+    // compileOnly fg.deobf(files("../epicfight/build/libs/epic-fight-${epicfight_version}.jar"))
+    // Option B: fetch from Modrinth (requires internet at build time)
+    compileOnly fg.deobf('maven.modrinth:vu3NZ5Ma:' + epicfight_version)
+    runtimeOnly fg.deobf('maven.modrinth:vu3NZ5Ma:' + epicfight_version)
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+}
+
+mixin {
+    add sourceSets.main, 'mixins.epicfighttweaks.refmap.json'
+    config 'mixins.epicfighttweaks.json'
+}
+
+jar {
+    manifest {
+        attributes([
+            'MixinConfigs'            : 'mixins.epicfighttweaks.json',
+            'Specification-Title'     : mod_id,
+            'Specification-Vendor'    : mod_authors,
+            'Specification-Version'   : '1',
+            'Implementation-Title'    : project.name,
+            'Implementation-Version'  : project.jar.archiveVersion,
+            'Implementation-Vendor'   : mod_authors,
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

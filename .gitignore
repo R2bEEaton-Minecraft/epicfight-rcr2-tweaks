@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IntelliJ / Eclipse / VS Code
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+*.factorypath
+.vscode/
+
+# Run directories
+run/
+
+# OS
+.DS_Store
+Thumbs.db

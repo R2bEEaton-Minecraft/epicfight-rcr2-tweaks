@@ -1,0 +1,21 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "net.rcr2tweaks.epicfighttweaks.mixin",
+    "compatibilityLevel": "JAVA_17",
+    "refmap": "mixins.epicfighttweaks.refmap.json",
+    "mixins": [
+        "common.MixinAnimationPlayer",
+        "common.MixinSkill",
+        "common.MixinBasicAttack"
+    ],
+    "client": [
+        "client.MixinFirstPersonRenderer",
+        "client.MixinPatchedLivingEntityRenderer",
+        "client.MixinPPlayerRenderer",
+        "client.MixinWearableItemLayer"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

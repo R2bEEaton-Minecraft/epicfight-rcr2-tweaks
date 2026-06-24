@@ -1,0 +1,37 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="epicfighttweaks"
+version="${file.jarVersion}"
+displayName="Epic Fight RCR2 Tweaks"
+description='''
+Quality-of-life tweaks for Epic Fight:
+  - First-person body/limb/armor hiding during attack animations
+  - Snappier attack feel (25% faster anticipation phase)
+  - Block attacks while swimming, creative-flying, or transformed by another mod
+  - Mermod compatibility (fixes leg rendering in mer form)
+'''
+authors="R2bEEaton"
+
+[[dependencies.epicfighttweaks]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.epicfighttweaks]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.epicfighttweaks]]
+    modId="epicfight"
+    mandatory=true
+    versionRange="[20,)"
+    ordering="AFTER"
+    side="BOTH"
