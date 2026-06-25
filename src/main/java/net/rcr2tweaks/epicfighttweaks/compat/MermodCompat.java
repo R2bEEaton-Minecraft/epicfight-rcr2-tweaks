@@ -4,7 +4,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import yesman.epicfight.api.forgeevent.BattleModeSustainableEvent;
 import java.lang.reflect.Method;
 
 public class MermodCompat {
@@ -21,7 +20,8 @@ public class MermodCompat {
             Class<?> client = Class.forName("io.github.thatpreston.mermod.MermodClient");
             shouldRenderTail = client.getMethod("shouldRenderTail", net.minecraft.world.entity.player.Player.class);
             available = true;
-            forgeEventBus.<BattleModeSustainableEvent>addListener(MermodCompat::onBattleModeSustainable);
+            // No BattleModeSustainableEvent listener — mermaids need to fight freely,
+            // including the underwater boss encounter.
             LOGGER.info("Mermod compat active");
         } catch (ClassNotFoundException e) {
             LOGGER.warn("Mermod detected but MermodClient not found — update MermodCompat.java");
@@ -34,13 +34,5 @@ public class MermodCompat {
         if (!available) return false;
         try { return Boolean.TRUE.equals(shouldRenderTail.invoke(null, player)); }
         catch (Exception e) { return false; }
-    }
-
-    private static void onBattleModeSustainable(BattleModeSustainableEvent event) {
-        if (!available) return;
-        try {
-            if (Boolean.TRUE.equals(shouldRenderTail.invoke(null, event.getPlayerPatch().getOriginal())))
-                event.setCanceled(true);
-        } catch (Exception ignored) {}
     }
 }

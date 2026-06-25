@@ -26,7 +26,7 @@ public class MixinAnimationPlayer {
         // Most EF animations have preDelay == antic, so we can't use that window;
         // instead we advance time throughout the entire pre-contact range.
         if (this.elapsedTime < phase.contact) {
-            float bonus = EpicFightSharedConstants.A_TICK * 0.25f;
+            float bonus = EpicFightSharedConstants.A_TICK * 0.15f;
             this.elapsedTime = Math.min(this.elapsedTime + bonus, phase.contact - EpicFightSharedConstants.A_TICK * 0.05f);
         }
     }
