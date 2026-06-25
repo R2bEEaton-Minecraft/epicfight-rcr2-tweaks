@@ -43,14 +43,16 @@ public class MixinFirstPersonRenderer {
         HumanoidMesh mesh = ((FirstPersonRenderer)(Object)this).getMeshProvider(localPlayerPatch).get();
         mesh.torso.setHidden(true);
         mesh.jacket.setHidden(true);
-        mesh.leftArm.setHidden(true);
-        mesh.rightArm.setHidden(true);
-        mesh.leftSleeve.setHidden(true);
-        mesh.rightSleeve.setHidden(true);
         mesh.leftLeg.setHidden(true);
         mesh.rightLeg.setHidden(true);
         mesh.leftPants.setHidden(true);
         mesh.rightPants.setHidden(true);
+        // Keep arms visible for bare-hand (fist) attacks so the punch is visible
+        boolean emptyHand = entity.getMainHandItem().isEmpty();
+        mesh.leftArm.setHidden(!emptyHand);
+        mesh.rightArm.setHidden(!emptyHand);
+        mesh.leftSleeve.setHidden(!emptyHand);
+        mesh.rightSleeve.setHidden(!emptyHand);
     }
 
     // Fires just before mesh.draw() in the idle first-person branch (povSettings == null)
@@ -64,6 +66,8 @@ public class MixinFirstPersonRenderer {
             int packedLight,
             float partialTicks,
             CallbackInfo ci) {
+        // Keep arms visible when the hand is empty (no item equipped)
+        if (entity.getMainHandItem().isEmpty()) return;
         HumanoidMesh mesh = ((FirstPersonRenderer)(Object)this).getMeshProvider(localPlayerPatch).get();
         mesh.leftArm.setHidden(true);
         mesh.rightArm.setHidden(true);
