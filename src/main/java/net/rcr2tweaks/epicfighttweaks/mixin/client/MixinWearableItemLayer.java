@@ -24,7 +24,7 @@ public class MixinWearableItemLayer {
     // MixinApplyError when WearableItemLayer is first classloaded (i.e. on world entry).
     @Inject(
         method = "renderLayer(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/layers/HumanoidArmorLayer;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I[Lyesman/epicfight/api/utils/math/OpenMatrix4f;FFFF)V",
-        at = @At("HEAD"), cancellable = true
+        at = @At("HEAD"), cancellable = true, require = 0
     )
     private <E extends LivingEntity, T extends LivingEntityPatch<E>> void rcr2_suppressArmorInFirstPerson(
             T entitypatch, E entityliving, HumanoidArmorLayer<E, ?, ?> vanillaLayer,
@@ -38,7 +38,8 @@ public class MixinWearableItemLayer {
 
     @Redirect(
         method = "renderLayer(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/layers/HumanoidArmorLayer;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I[Lyesman/epicfight/api/utils/math/OpenMatrix4f;FFFF)V",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;")
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"),
+        require = 0
     )
     private ItemStack rcr2_hideEpicFightLegArmorForMermodTail(LivingEntity entity, EquipmentSlot slot) {
         if ((slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET)
